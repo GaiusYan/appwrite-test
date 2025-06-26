@@ -56,7 +56,7 @@ export default function Home() {
   }
   
   if(loggedInUser) {
-    return <div className="border-b p-4 bg-white m">
+    return<> <div className="border-b p-4 bg-white m">
 
       <div className="flex justify-between items-center ">
         <p>Bienvenu sur votre session {loggedInUser?.name}</p>
@@ -65,7 +65,24 @@ export default function Home() {
         </Button>
       </div>
     </div>
-    
+      <div className="flex justify-center items-center max-h-max mt-40">
+        <Card className="w-[387px] p-4">
+            <CardHeader>
+              <CardTitle>Enregistrer un fichier sur appwrite</CardTitle>
+              <CardDescription>
+                Pour enregistrer le fichier selectionner un fichier et téléverser
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              
+            </CardContent>
+            <CardFooter>
+              <Button className="w-full hover:bg-blue-700 cursor-pointer">
+                Enregistrer un fichier</Button>
+            </CardFooter>
+        </Card>
+      </div>
+    </>
   }
 
   const onSubmit = (values: z.infer<typeof AuthenticationSchema>) => {

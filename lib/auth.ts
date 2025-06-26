@@ -6,7 +6,6 @@ import { AuthenticationSchema } from "../schema/authentication-schema";
 export const Login = async (user : z.infer<typeof AuthenticationSchema>) => {
     const session = await account.createEmailPasswordSession(user?.email, user?.password);
     return session;
-   
 }
 
 
