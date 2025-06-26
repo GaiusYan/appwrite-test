@@ -1,4 +1,4 @@
-import {storage } from "@/app/appwrite";
+import {storage, account } from "@/app/appwrite";
 import {ID} from "appwrite";
 
 const bucketId : string = process.env.NEXT_PUBLIC_APPWRITE_STORAGE_BUCKET_ID as string;
@@ -6,10 +6,20 @@ const bucketId : string = process.env.NEXT_PUBLIC_APPWRITE_STORAGE_BUCKET_ID as 
 
 export const createFile = async (file: File) => {
     try {
+        /* console.log("Uploading file to bucket:", bucketId); */
+        const session = await account.get();
+        console.log({session});
+        
         const response = await storage.createFile(
             bucketId,
             ID.unique(),
             file,
+            /* [
+                Permission.read(session.$id),
+                Permission.write(session.$id),
+                Permission.update(session.$id),
+                Permission.delete(session.$id)
+            ] */
         );
         return response;
     } catch (error) {

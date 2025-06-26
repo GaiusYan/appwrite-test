@@ -4,8 +4,12 @@ import * as z from "zod";
 import { AuthenticationSchema } from "../schema/authentication-schema";
 
 export const Login = async (user : z.infer<typeof AuthenticationSchema>) => {
-    const session = await account.createEmailPasswordSession(user?.email, user?.password);
-    return session;
+    try {
+        const session = await account.createEmailPasswordSession(user?.email, user?.password);
+        return session;
+    } catch(exception){
+        return exception;
+    }
 }
 
 

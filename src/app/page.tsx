@@ -11,6 +11,9 @@ import * as z from "zod";
 import { Login, Register } from "../../lib/auth";
 import { AuthenticationSchema } from "../../schema/authentication-schema";
 import { FormAlert } from "@/components/form-message";
+import { FileSchema, UploadFileSchema } from "../../schema/file-schema";
+import { createFile } from "../../actions/file";
+import { AppwriteException } from "appwrite";
 
 /* const AuthenticationSchema = z.object({
   email : z.string()
@@ -41,6 +44,11 @@ export default function Home() {
     }
   });
 
+
+  const formUpload = useForm<z.infer<typeof UploadFileSchema>>({
+    resolver : zodResolver(UploadFileSchema)
+  });
+
   
   const [message, setMessage] = useState({
     type: "Default",
@@ -54,8 +62,23 @@ export default function Home() {
     await account.deleteSession("current");
     setLoggedInUser(undefined);
   }
+
+  const onUploadFileSubmit = async (values : z.infer<typeof UploadFileSchema>) => {
+      const file = values.file as File;
+      const response  = await createFile(file);
+      if(response instanceof AppwriteException) {
+        setMessage((prev) => ({
+          ...prev,
+          type : "Error",
+          title : response.type,
+          description: response.message
+        }));
+        return;
+      }
+      console.log(response);
+  };
   
-  if(loggedInUser) {
+  if(loggedInUser != undefined) {
     return<> <div className="border-b p-4 bg-white m">
 
       <div className="flex justify-between items-center ">
@@ -66,21 +89,58 @@ export default function Home() {
       </div>
     </div>
       <div className="flex justify-center items-center max-h-max mt-40">
-        <Card className="w-[387px] p-4">
-            <CardHeader>
-              <CardTitle>Enregistrer un fichier sur appwrite</CardTitle>
-              <CardDescription>
-                Pour enregistrer le fichier selectionner un fichier et téléverser
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              
-            </CardContent>
-            <CardFooter>
-              <Button className="w-full hover:bg-blue-700 cursor-pointer">
-                Enregistrer un fichier</Button>
-            </CardFooter>
-        </Card>
+        
+        <FormProvider {...formUpload}>
+          <form onSubmit={formUpload.handleSubmit(onUploadFileSubmit)}>
+            <Card className="w-[387px] p-4">
+                <CardHeader>
+                  <CardTitle>Enregistrer un fichier sur appwrite</CardTitle>
+                  <CardDescription>
+                    Pour enregistrer le fichier selectionner un fichier et téléverser
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <FormField
+                    control={formUpload.control}
+                    name="file"
+                    render={({field}) => (
+                      <FormItem className="mb-4">
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="file"
+                            disabled={isPending}
+                            placeholder="Selectionner un fichier"
+                            onChange={e => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                formUpload.setValue("file", file);
+                              }
+                            }}
+                            name={field.name}
+                            ref={field.ref}
+                            onBlur={field.onBlur}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                />
+                </CardContent>
+                <CardFooter>
+                  <Button 
+                    type="submit"
+                    className="w-full hover:bg-blue-700 cursor-pointer">
+                    Enregistrer un fichier</Button>
+                </CardFooter>
+            </Card>
+          </form> 
+          <FormAlert 
+              className="w-[387px] hover:cursor-pointer"
+              title="Fichier enregistré" 
+              type="Success" 
+              description="Fichier enregistré"/>
+        </FormProvider>
       </div>
     </>
   }
@@ -90,6 +150,15 @@ export default function Home() {
 
       if (isLogin) {
         const userExisting = await Login(values);
+        if(userExisting instanceof AppwriteException) {
+          setMessage((prev) => ({
+            ...prev,
+            type : "Error",
+            title : userExisting.type,
+            description: userExisting.message
+          }));
+          return;
+        }
         setLoggedInUser(userExisting as object);
         console.log({userExisting});
         
